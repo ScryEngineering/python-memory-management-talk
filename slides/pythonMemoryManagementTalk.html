@@ -152,9 +152,13 @@ If you make C extensions you have to manually increment and decrement references
 
 Unfortunately a purely reference counting based implementation can't break cycles.
 
-This is why there's a second garbage collector in CPython that periodically runs:
+This is why there's a cycle detector in CPython that periodically runs:
 
 https://docs.python.org/3/library/gc.html
+
+???
+
+There's an edge case where the cycle detector can't actually free the memory, this is when objects define `__del__`, the interpreter cannot safely pick which to run first since `__del__` can contain arbitraty code. When this happens the objects get placed in [`gc.garbage`](http://docs.python.org/library/gc.html#gc.garbage) to be dealt with by the programmer. Or just forgotten entirely... This is where things like https://pythonhosted.org/Pympler/ are useful to detect leaked memory.
 
 ---
 
