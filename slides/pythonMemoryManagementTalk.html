@@ -91,7 +91,7 @@ c = [a, b]
 
 ---
 
-# Python Objects
+# Python Objects (part 1)
 
 Python is an "Object Oriented Language", meaning that almost everything is an object.
 
@@ -122,15 +122,15 @@ This `PyEval_EvalFrameEx` function is the evaluation function for Python, with P
 
 ---
 
-
 # Garbage collection
 
-Python is a managed language, you don't manually manage memory as you would in say C++ or Rust.
+Python is a managed language, you don't manually manage memory as you would in say C++ or Rust.*
 
-So when variables are not needed anymore Python has to reclaim the memory that the variables used to reside at.
+When you create a variable Python will set aside the memory needed to store that variable.
+When variables are not needed anymore Python has to reclaim the memory.
 
-How this works is implementation specific Jython uses the JVM memory management
-CPython has a simple reference count based approach.
+How this works is implementation specific CPython has a simple reference count based approach, chosen primarily for maximum compatibility.
+(Jython uses the JVM memory management, PyPy has a different strategy)
 
 ---
 
@@ -139,6 +139,12 @@ CPython has a simple reference count based approach.
 Each time you make reference to a variable the reference count for the variable is incremented, when that count gets to zero then you have nothing referring to that variable anymore* at which point the item's `__del__` method gets called and the memory can be reused.
 
 *There _are_ ways around this if you need them, see [weakref](https://docs.python.org/3/library/weakref.html) for example.
+
+???
+
+This is good reading for how this all works: https://docs.python.org/3/extending/extending.html#reference-counts
+
+If you make C extensions you have to manually increment and decrement references.
 
 ---
 
@@ -149,6 +155,29 @@ Unfortunately a purely reference counting based implementation can't break cycle
 This is why there's a second garbage collector in CPython that periodically runs:
 
 https://docs.python.org/3/library/gc.html
+
+---
+
+# CPython Objects - where (part 2)
+
+[Since Python 2.3](https://docs.python.org/2.3/whatsnew/section-pymalloc.html) CPython has used some functions very similar to the C malloc and free functions to allocate the memory in which objects are stored. These functions are modified to be more suitable for allocating the Python objects we commonly see.
+
+In CPython when you do `id(something)` what you see is the memory address of where `something` resides:
+
+```python
+>>> foo = 123
+>>> id(foo)
+10923328
+```
+
+---
+
+# CPython objects - what (part 3)
+
+So we know where the objects end up in memory but what gets put there?
+
+
+TODO: Python objects structure
 
 ---
 
