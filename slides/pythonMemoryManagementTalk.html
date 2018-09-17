@@ -54,7 +54,104 @@ Images:
 https://www.python.org/community/logos/
 https://en.wikipedia.org/wiki/DDR_SDRAM#/media/File:Generic_DDR_Memory_(Xytram).jpg
 
+
 ---
+
+# First some background
+
+We are going to assume we are on a Von Neumann Architecture
+
+What this means is that RAM is essentially addressable.
+
+
+---
+
+# What is a variable?
+
+* Symbolic name
+* Storage location
+
+???
+
+If more than one symbolic name is located at the same storage location this is referred to as [aliasing](https://en.wikipedia.org/wiki/Aliasing_(computing)). 
+
+---
+
+# Pythontutor
+
+There's a great site for getting intuition into how variables work in Python: http://pythontutor.com/
+
+Let's have a look at this example:
+
+```python
+a = 1
+b = "abc"
+c = [a, b]
+```
+
+---
+
+# Python Objects
+
+Python is an "Object Oriented Language", meaning that almost everything is an object.
+
+Python has the notion of a [data model](https://docs.python.org/3/reference/datamodel.html), where objects are the abstraction Python uses for data.
+
+If you look around the source code you'll see these `PyObjects` all over the place. All these `PyObjects` are allocated in a chunk of memory that people may informally refer to as "the heap".
+
+---
+
+# Stack frames
+
+We can set aside some memory for storing variables, we also have to set aside memory for handling function calls.
+
+When we create a function we have to put aside the memory for all the variables inside it as well as the function call machinery .
+
+This is most easily achieved with a stack based structure (but not the only way it can be done)
+
+---
+
+# Stack frames in Python
+
+CPython has the notion of a Stack frame defines in [`PyFrameObject`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyFrameObject) and evaluates them in using [`PyEval_EvalFrameEx`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyEval_EvalFrameEx)
+
+
+???
+
+This `PyEval_EvalFrameEx` function is the evaluation function for Python, with PEP 
+
+---
+
+
+# Garbage collection
+
+Python is a managed language, you don't manually manage memory as you would in say C++ or Rust.
+
+So when variables are not needed anymore Python has to reclaim the memory that the variables used to reside at.
+
+How this works is implementation specific Jython uses the JVM memory management
+CPython has a simple reference count based approach.
+
+---
+
+# Python's reference counter
+
+Each time you make reference to a variable the reference count for the variable is incremented, when that count gets to zero then you have nothing referring to that variable anymore* at which point the item's `__del__` method gets called and the memory can be reused.
+
+*There _are_ ways around this if you need them, see [weakref](https://docs.python.org/3/library/weakref.html) for example.
+
+---
+
+# What about cycles?
+
+Unfortunately a purely reference counting based implementation can't break cycles.
+
+This is why there's a second garbage collector in CPython that periodically runs:
+
+https://docs.python.org/3/library/gc.html
+
+---
+
 
 # Questions?
 
