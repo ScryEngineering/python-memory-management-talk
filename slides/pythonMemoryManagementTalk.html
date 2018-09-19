@@ -138,7 +138,7 @@ This `PyEval_EvalFrameEx` function is the evaluation function for Python, with P
 
 # Garbage collection
 
-Python is a managed language, you don't manually manage memory as you would in say C++ or Rust.*
+Python is a managed language, you don't have to manually manage memory as you would in say C++ or Rust.
 
 When you create a variable Python will set aside the memory needed to store that variable.
 When variables are not needed anymore Python has to reclaim the memory.
@@ -272,6 +272,23 @@ Note how the small integers and values like `None` are in a completely different
 
 So we know where the objects end up in memory but what gets put there?
 
+The source code is here:
+https://github.com/python/cpython/blob/master/Include/object.h
+
+A comment from the source:
+
+    Objects are structures allocated on the heap.  Special rules apply to
+    the use of objects to ensure they are properly garbage-collected.
+    Objects are never allocated statically or on the stack; they must be
+    accessed through special macros and functions only.
+
+    An object has a 'reference count' that is increased or decreased when a
+    pointer to the object is copied or deleted; when the reference count
+    reaches zero there are no references to the object left and it can be
+    removed from the heap.
+
+
+---
 
 TODO: Python objects structure
 
