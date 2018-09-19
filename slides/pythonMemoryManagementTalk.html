@@ -310,6 +310,16 @@ Because everything has this similar interface to access we have some nice tools 
 
 This tells us which methods we can call on `a`. All the double underscore or "dunder" methods as they are known have special meaning in terms of the interface they provide.
 
+`__len__` lets us find the length of the item via the `len` function.
+```python
+>>> len(a)
+3
+```
+
+???
+
+`len(a)` just calls `a.__len__`.
+
 ---
 
 # Functions have this interface too
@@ -324,17 +334,67 @@ Functions are also accessible via this same object interface:
 ['__annotations__', '__call__', '__class__', '__closure__', '__code__', '__defaults__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__get__', '__getattribute__', '__globals__', '__gt__', '__hash__', '__init__', '__kwdefaults__', '__le__', '__lt__', '__module__', '__name__', '__ne__', '__new__', '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__']
 ```
 
-This means we can pass functions around just as easily as variables
+This means we can pass functions around just as easily as variables.
+
+`__call__` is part of the function interface, something not in the list interface.
 
 ???
 
 
 ---
 
-TODO: Python objects structure
+# How variables are implemented
+
+https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Include/object.h#L101
+```c
+/* Nothing is actually declared to be a PyObject, but every pointer to
+ * a Python object can be cast to a PyObject*.  This is inheritance built
+ * by hand.  Similarly every pointer to a variable-size Python object can,
+ * in addition, be cast to PyVarObject*.
+ */
+typedef struct _object {
+    _PyObject_HEAD_EXTRA
+    Py_ssize_t ob_refcnt;
+    struct _typeobject *ob_type;
+} PyObject;
+```
+
+This gives us the base from which everything else is built.
+This is a placeholder into which we can store arbitrary variables.
+
+???
+
+This provides for the reference counted memory management of anything stored within it.
+
+`_PyObject_HEAD_EXTRA` deals with a debug tracing feature and is often #defined away as nothing.
 
 ---
 
+# How variables end up layed out in heap memory
+
+https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Include/object.h#L460-L477
+```c
+/* The *real* layout of a type object when allocated on the heap */
+typedef struct _heaptypeobject {
+    /* Note: there's a dependency on the order of these members
+       in slotptr() in typeobject.c . */
+    PyTypeObject ht_type;
+    PyAsyncMethods as_async;
+    PyNumberMethods as_number;
+    PyMappingMethods as_mapping;
+    PySequenceMethods as_sequence; /* as_sequence comes after as_mapping,
+                                      so that the mapping wins when both
+                                      the mapping and the sequence define
+                                      a given operator (e.g. __getitem__).
+                                      see add_operators() in typeobject.c . */
+    PyBufferProcs as_buffer;
+    PyObject *ht_name, *ht_slots, *ht_qualname;
+    struct _dictkeysobject *ht_cached_keys;
+    /* here are optional user slots, followed by the members. */
+} PyHeapTypeObject;
+```
+
+---
 
 # Questions?
 
