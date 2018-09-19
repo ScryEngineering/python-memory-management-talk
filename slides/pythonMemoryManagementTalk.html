@@ -210,6 +210,48 @@ In CPython when you do `id(something)` what you see is the memory address of whe
 10923328
 ```
 
+???
+Most of the time when you store different items they will end up at different addresses, but not always.
+
+Some items commonly used items are optimized to just be in one place and will have a reference to that place.
+
+For example:
+```python
+>>> c = None
+>>> id(c)
+10748000
+>>> d = None
+>>> id(d)
+10748000
+```
+
+`None` is always stored at the same address
+
+Small integers are cached
+
+```python
+>>> e = 5
+>>> id(e)
+10919552
+>>> f = 5
+>>> id(f)
+10919552
+
+```
+
+"Large" integers however are not:
+
+```python
+>>> a = 12345
+>>> id(a)
+140498856595248
+>>> b = 12345
+>>> id(b)
+140498834051248
+```
+
+Note how the small integers and values like `None` are in a completely different area of memory to the non-cached variables.
+
 ---
 
 # CPython objects - what (part 3)
