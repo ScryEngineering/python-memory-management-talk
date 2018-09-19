@@ -111,26 +111,41 @@ In the previous example we saw that we needed to assign 3 variables.
 
 But what about this:
 
+```python
+a = 1
+b = "abc"
+
+def foo():
+    v1 = 1
+    v2 = 2
+```
+
+In this case how many variables will depend on how many times `foo` is called.
+
 ---
 
 # Stack frames
 
 We can set aside some memory for storing variables, we also have to set aside memory for handling function calls.
 
-When we create a function we have to put aside the memory for all the variables inside it as well as the function call machinery .
+When we create a function we have to put aside the memory for all the variables inside it as well as the function call machinery.
 
-This is most easily achieved with a stack based structure (but not the only way it can be done)
+This is most easily achieved with a stack based structure
+
+???
+
+Stack frames are not the only way this can be done but are likely the most conceptually simple implementation of the behaviour needed to implement the Python languge semantics.
 
 ---
 
 # Stack frames in Python
 
-CPython has the notion of a Stack frame defines in [`PyFrameObject`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyFrameObject) and evaluates them in using [`PyEval_EvalFrameEx`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyEval_EvalFrameEx)
+CPython has the notion of a Stack frame defined in [`PyFrameObject`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyFrameObject) and evaluates them in using [`PyEval_EvalFrameEx`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyEval_EvalFrameEx)
 
 
 ???
 
-This `PyEval_EvalFrameEx` function is the evaluation function for Python, with PEP 
+This `PyEval_EvalFrameEx` function is the evaluation function for Python, with PEP 523 there is support being added to evaluate frames differently https://www.python.org/dev/peps/pep-0523/
 
 ---
 
