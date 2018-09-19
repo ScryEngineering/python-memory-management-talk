@@ -224,7 +224,9 @@ If you look around the source code you'll see these `PyObjects` all over the pla
 
 [Since Python 2.3](https://docs.python.org/2.3/whatsnew/section-pymalloc.html) CPython has used some functions very similar to the C malloc and free functions to allocate the memory in which objects are stored. These functions are modified to be more suitable for allocating the Python objects we commonly see.
 
-In CPython when you do `id(something)` what you see is the memory address of where `something` resides:
+What malloc does is *alloc*ates a space in *m*emory for which a variable can be placed and gives you the pointer to where that space starts.
+
+In CPython when you do `id(something)` what you are seeing is the memory address of where `something` resides:
 
 ```python
 >>> foo = 123
@@ -235,7 +237,7 @@ In CPython when you do `id(something)` what you see is the memory address of whe
 ???
 Most of the time when you store different items they will end up at different addresses, but not always.
 
-Some items commonly used items are optimized to just be in one place and will have a reference to that place.
+Some items commonly used items are optimized to just be in one place and will therefore have a reference to that place.
 
 For example:
 ```python
@@ -295,57 +297,11 @@ A comment from the source:
     reaches zero there are no references to the object left and it can be
     removed from the heap.
 
-
----
-
-# Python objects, what's in them?
-
-Because everything has this similar interface to access we have some nice tools like `dir` to see what's inside an object:
-
-```python
->>> a = [1,2,3]
->>> dir(a)
-['__add__', '__class__', '__contains__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__iadd__', '__imul__', '__init__', '__iter__', '__le__', '__len__', '__lt__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rmul__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'append', 'clear', 'copy', 'count', 'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
-```
-
-This tells us which methods we can call on `a`. All the double underscore or "dunder" methods as they are known have special meaning in terms of the interface they provide.
-
-`__len__` lets us find the length of the item via the `len` function.
-```python
->>> len(a)
-3
-```
-
-???
-
-`len(a)` just calls `a.__len__`.
-
----
-
-# Functions have this interface too
-
-Functions are also accessible via this same object interface:
-
-```python
->>> def foo():
-...     print("bar")
-... 
->>> dir(foo)
-['__annotations__', '__call__', '__class__', '__closure__', '__code__', '__defaults__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__get__', '__getattribute__', '__globals__', '__gt__', '__hash__', '__init__', '__kwdefaults__', '__le__', '__lt__', '__module__', '__name__', '__ne__', '__new__', '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__']
-```
-
-This means we can pass functions around just as easily as variables.
-
-`__call__` is part of the function interface, something not in the list interface.
-
-???
-
-
 ---
 
 # How variables are implemented
 
-https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Include/object.h#L101
+https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Include/object.h#L101:
 ```c
 /* Nothing is actually declared to be a PyObject, but every pointer to
  * a Python object can be cast to a PyObject*.  This is inheritance built
@@ -370,8 +326,53 @@ This provides for the reference counted memory management of anything stored wit
 
 ---
 
-# How variables end up layed out in heap memory
+# Python objects, what's in them?
 
+Because everything has this similar interface to access we have some nice tools like `dir` to see what's inside an object:
+
+```python
+>>> a = [1,2,3]
+>>> dir(a)
+['__add__', '__class__', '__contains__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__iadd__', '__imul__', '__init__', '__iter__', '__le__', '__len__', '__lt__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rmul__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'append', 'clear', 'copy', 'count', 'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
+```
+
+This tells us which methods we can call on `a`. All the double underscore or "dunder" methods as they are known have special meaning in terms of the interface they provide.
+
+`__len__` lets us find the length of the item via the `len` function.
+```python
+>>> len(a)
+3
+```
+
+???
+
+`dir` is defined in the C source here https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Objects/object.c#L1479-L1487
+
+`len(a)` just calls `a.__len__`.
+
+---
+
+# Functions have this interface too
+
+Functions are also accessible via this same object interface:
+
+```python
+>>> def foo():
+...     print("bar")
+... 
+>>> dir(foo)
+['__annotations__', '__call__', '__class__', '__closure__', '__code__', '__defaults__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__get__', '__getattribute__', '__globals__', '__gt__', '__hash__', '__init__', '__kwdefaults__', '__le__', '__lt__', '__module__', '__name__', '__ne__', '__new__', '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__']
+```
+
+This means we can pass functions around just as easily as variables.
+
+`__call__` is part of the function interface, something not in the list interface.
+
+???
+
+---
+
+# How variables end up layed out in heap memory
 https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Include/object.h#L460-L477
 ```c
 /* The *real* layout of a type object when allocated on the heap */
