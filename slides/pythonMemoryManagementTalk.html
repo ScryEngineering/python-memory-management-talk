@@ -105,13 +105,11 @@ c = [a, b]
 
 ---
 
-# Python Objects (part 1)
+# How many variables did we need to assign?
 
-Python is an "Object Oriented Language", meaning that almost everything is an object.
+In the previous example we saw that we needed to assign 3 variables.
 
-Python has the notion of a [data model](https://docs.python.org/3/reference/datamodel.html), where objects are the abstraction Python uses for data.
-
-If you look around the source code you'll see these `PyObjects` all over the place. All these `PyObjects` are allocated in a chunk of memory that people may informally refer to as "the heap".
+But what about this:
 
 ---
 
@@ -212,6 +210,16 @@ print("Number of unreachable objects {}".format(n)) # 6 items get freed
 
 ---
 
+# Python Objects (part 1)
+
+Python is an "Object Oriented Language", which in this case means that almost every variable is accessible via a similar interface.
+
+Python has the notion of a [data model](https://docs.python.org/3/reference/datamodel.html), where objects are the abstraction Python uses for data.
+
+If you look around the source code you'll see these `PyObjects` all over the place. All these `PyObjects` are allocated in a chunk of memory that people may informally refer to as "the heap".
+
+---
+
 # CPython Objects - where (part 2)
 
 [Since Python 2.3](https://docs.python.org/2.3/whatsnew/section-pymalloc.html) CPython has used some functions very similar to the C malloc and free functions to allocate the memory in which objects are stored. These functions are modified to be more suitable for allocating the Python objects we commonly see.
@@ -286,6 +294,39 @@ A comment from the source:
     pointer to the object is copied or deleted; when the reference count
     reaches zero there are no references to the object left and it can be
     removed from the heap.
+
+
+---
+
+# Python objects, what's in them?
+
+Because everything has this similar interface to access we have some nice tools like `dir` to see what's inside an object:
+
+```python
+>>> a = [1,2,3]
+>>> dir(a)
+['__add__', '__class__', '__contains__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__iadd__', '__imul__', '__init__', '__iter__', '__le__', '__len__', '__lt__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rmul__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'append', 'clear', 'copy', 'count', 'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
+```
+
+This tells us which methods we can call on `a`. All the double underscore or "dunder" methods as they are known have special meaning in terms of the interface they provide.
+
+---
+
+# Functions have this interface too
+
+Functions are also accessible via this same object interface:
+
+```python
+>>> def foo():
+...     print("bar")
+... 
+>>> dir(foo)
+['__annotations__', '__call__', '__class__', '__closure__', '__code__', '__defaults__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__get__', '__getattribute__', '__globals__', '__gt__', '__hash__', '__init__', '__kwdefaults__', '__le__', '__lt__', '__module__', '__name__', '__ne__', '__new__', '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__']
+```
+
+This means we can pass functions around just as easily as variables
+
+???
 
 
 ---
