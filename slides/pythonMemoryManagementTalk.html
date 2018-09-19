@@ -158,7 +158,43 @@ https://docs.python.org/3/library/gc.html
 
 ???
 
-There's an edge case where the cycle detector can't actually free the memory, this is when objects define `__del__`, the interpreter cannot safely pick which to run first since `__del__` can contain arbitraty code. When this happens the objects get placed in [`gc.garbage`](http://docs.python.org/library/gc.html#gc.garbage) to be dealt with by the programmer. Or just forgotten entirely... This is where things like https://pythonhosted.org/Pympler/ are useful to detect leaked memory.
+There's an edge case in older versions of Python where the cycle detector can't actually free the memory, this is when objects define `__del__` in such a way that the interpreter cannot safely pick which to run first since `__del__` can contain arbitraty code. When this happens the objects get placed in [`gc.garbage`](http://docs.python.org/library/gc.html#gc.garbage) to be dealt with by the programmer. Or just forgotten entirely... This is where things like https://pythonhosted.org/Pympler/ are useful to detect leaked memory.
+
+Since PEP 442 https://www.python.org/dev/peps/pep-0442/ which got included in Python 3.4 the number of cases in which this comes up is far smaller now.
+You will likely only run into this in in cases where you define a `__del__` operator via the C-API. (I'd be curious to hear of any other cases)
+
+---
+
+# Cycle example
+
+```python
+"""Example of a cyclic reference that can be resolved in both python3 and python2"""
+import gc
+
+class A:
+    def __init__ (self, name):
+        self.name = name
+        self.other = None
+    def set_other(self, other):
+        self.other = other
+    def __repr__(self):
+        return "A({})".format(self.name)
+
+a1 = A("first")
+a2 = A("second")
+a3 = A("third")
+a1.set_other(a2)
+a2.set_other(a3)
+a3.set_other(a1)
+
+a1 = a2 = a3 = None
+n = gc.collect()
+print("Number of unreachable objects {}".format(n)) # 6 items get freed
+```
+
+???
+
+`gc.collect` calls a run of the cycle detector and returns the number of items that were freed from the run. In this case it was 6.
 
 ---
 
