@@ -337,7 +337,30 @@ This is a placeholder into which we can store arbitrary variables.
 
 This provides for the reference counted memory management of anything stored within it.
 
-`_PyObject_HEAD_EXTRA` deals with a debug tracing feature and is often #defined away as nothing.
+`_PyObject_HEAD_EXTRA` os a preprocessor macro that deals with a debug tracing feature and is often #defined away as nothing.
+
+---
+
+# The type of an object
+
+The type of an object defines what you can find in them, in the source code this is found here in [Doc/includes/typestruct.h](
+https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Doc/includes/typestruct.h).
+
+This is necessary for 2 reasons, it is required so that Python knows how much space to set aside for the variable in the RAM.
+It also allows Python to know what interface is supported by that variable.
+
+---
+
+# Types part 2
+
+Now instead of storing the types everyhere as you can see in the C source code there's a pointer. Each variable has this reference to some memory which defines what type it is.
+
+What resides at the address is found with the `type` builtin:
+```python
+>>> a = 123
+>>> type(a)
+<class 'int'>
+```
 
 ---
 
