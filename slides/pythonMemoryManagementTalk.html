@@ -331,13 +331,13 @@ In the previous example we saw that we needed to assign 3 variables.
 But what about this:
 
 ```python
-
 a = 1
 b = 2
 
 def foo():
     bar = 1
     baz = 2
+foo()
 ```
 
 Understanding this requires to know how a stack frame works.
@@ -351,16 +351,36 @@ The total number of variables that have to be assigned is completely dependent o
 
 # Stack frames
 
+Stack frames contain all the information required to allow function calls to work.
+
 Functions are themselves variables but they have a few extra things going on too. Specifically they need to be able to set aside some memory for storing the references to the other variables stored in them.
 
 When we create a function we have to put aside the memory for all the variables inside it as well as the function call machinery.
-
-This is most easily achieved with a stack based structure and therefore is how CPython has implemented it. These are called frame objects.
+This is most easily achieved with a stack based structure and therefore is how CPython has implemented it. These entities are called frame objects.
 
 ???
 
 A stack is not the only way to do this, projects such as stackless python have experimented with other approaches.
 
+
+---
+
+# Example from before
+
+```python
+a = 1
+b = 2
+
+def foo():
+    bar = 1
+    baz = 2
+foo()
+```
+[Run on PythonTutor](http://pythontutor.com/visualize.html#code=a%20%3D%201%0Ab%20%3D%202%0A%0Adef%20foo%28%29%3A%0A%20%20%20%20bar%20%3D%201%0A%20%20%20%20baz%20%3D%202%0Afoo%28%29&cumulative=false&curInstr=8&heapPrimitives=nevernest&mode=display&origin=opt-frontend.js&py=3&rawInputLstJSON=%5B%5D&textReferences=false)
+
+???
+
+Note how the
 
 ---
 
@@ -429,26 +449,20 @@ Variable names:
    1: baz
 ```
 
+The `dis` module provides a handy human readable output of what's going on.
+
 ---
 
 # Stack frames in Python
 
 CPython has the notion of a Stack frame which it defines in [`PyFrameObject`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyFrameObject) and evaluates them in using [`PyEval_EvalFrameEx`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyEval_EvalFrameEx)
 
-Whenever Python runs it creates an initial frame, which can itself create other frames. Python "executes" by evaluating these frames.
+Whenever Python runs it creates an initial frame, which can itself create other frames. Python "executes" code by evaluating these frames.
 
 ???
 
 This `PyEval_EvalFrameEx` function is the evaluation function for Python, with [PEP 523](https://www.python.org/dev/peps/pep-0523/) they added another way for you to evaluate these frames. This isn't something I've looked into yet.
 
-
----
-
-# Initializing a program
-
-When we start a program we have a frame that contains the top most level.
-
-This is what we saw in the PythonTutor example called the "global frame"
 
 ---
 
