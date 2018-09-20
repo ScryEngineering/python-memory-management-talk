@@ -111,6 +111,21 @@ In the previous example we saw that we needed to assign 3 variables.
 
 But what about this:
 
+```python
+
+a = 1
+b = 2
+
+def foo():
+    bar = 1
+    baz = 2
+```
+
+???
+
+The total number of variables that have to be assigned is completely dependent on how many times `foo` is called
+
+
 ---
 
 # Stack frames
@@ -131,6 +146,7 @@ CPython has the notion of a Stack frame defines in [`PyFrameObject`](https://doc
 ???
 
 This `PyEval_EvalFrameEx` function is the evaluation function for Python, with PEP 
+
 
 ---
 
