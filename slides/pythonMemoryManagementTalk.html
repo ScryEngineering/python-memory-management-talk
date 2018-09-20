@@ -103,6 +103,7 @@ b = "abc"
 c = [a, b]
 ```
 
+[Run in PythonTutor](http://pythontutor.com/visualize.html#code=a%20%3D%201%0Ab%20%3D%20%22abc%22%0Ac%20%3D%20%5Ba,%20b%5D&cumulative=false&curInstr=0&heapPrimitives=nevernest&mode=display&origin=opt-frontend.js&py=3&rawInputLstJSON=%5B%5D&textReferences=false)
 
 ---
 
@@ -301,7 +302,8 @@ More about functions a little later...
 ---
 
 # How variables end up layed out in heap memory
-https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Include/object.h#L460-L477
+
+This is in the source at [Include/object.h](https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Include/object.h#L460-L477)
 ```c
 /* The *real* layout of a type object when allocated on the heap */
 typedef struct _heaptypeobject {
@@ -311,17 +313,14 @@ typedef struct _heaptypeobject {
     PyAsyncMethods as_async;
     PyNumberMethods as_number;
     PyMappingMethods as_mapping;
-    PySequenceMethods as_sequence; /* as_sequence comes after as_mapping,
-                                      so that the mapping wins when both
-                                      the mapping and the sequence define
-                                      a given operator (e.g. __getitem__).
-                                      see add_operators() in typeobject.c . */
+    PySequenceMethods as_sequence;
     PyBufferProcs as_buffer;
     PyObject *ht_name, *ht_slots, *ht_qualname;
     struct _dictkeysobject *ht_cached_keys;
     /* here are optional user slots, followed by the members. */
 } PyHeapTypeObject;
 ```
+Note the memory is layed out in exactly that order.
 
 ---
 
@@ -405,7 +404,11 @@ This stores the local variables to that frame. Let's see how this works with the
 def foo():
     bar = "abc"
     baz = 123
+```
+
 ---
+
+# Local variables to a frame - implementation
 
 ```python
 >>> import dis
@@ -441,13 +444,25 @@ This `PyEval_EvalFrameEx` function is the evaluation function for Python, with [
 
 ---
 
+# Initializing a program
+
+When we start a program we have a frame that contains the top most level.
+
+This is what we saw in the PythonTutor example called the "global frame"
+
+---
+
 # What happens to the memory after we no longer need it?
 
 So far we have covered what gets created in memory but not how it gets deleted.
 
 For code ot be useful and not use up all your RAM it has to remove unneeded variables from memory when it's done with them.
 
-This process is known as [Garbage collection](https://en.wikipedia.org/wiki/Garbage_collection_(computer_science))
+This process is known as "Garbage collection"
+
+???
+
+Garbage collection: https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)
 
 ---
 
@@ -527,7 +542,7 @@ print("Number of unreachable objects {}".format(n)) # 6 items get freed
 
 `gc.collect` calls a run of the cycle detector and returns the number of items that were freed from the run. In this case it was 6.
 
-
+---
 
 # Questions?
 
