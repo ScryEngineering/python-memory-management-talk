@@ -103,175 +103,13 @@ b = "abc"
 c = [a, b]
 ```
 
----
-
-# How many variables do we need to assign?
-
-In the previous example we saw that we needed to assign 3 variables.
-
-But what about this:
-
-```python
-
-a = 1
-b = 2
-
-def foo():
-    bar = 1
-    baz = 2
-```
-
-Understanding this requires to know how a stack frame works.
-
-???
-
-The total number of variables that have to be assigned is completely dependent on how many times `foo` is called
-
 
 ---
 
-# Stack frames
+# How does Python store variables in memory
 
-We can set aside some memory for storing variables, we also have to set aside memory for handling function calls.
+Exactly how this works is an Python implementation dependent detail, we will look at how CPython does it.
 
-When we create a function we have to put aside the memory for all the variables inside it as well as the function call machinery .
-
-This is most easily achieved with a stack based structure (but not the only way it can be done)
-
----
-
-# Stack frames in Python
-
-CPython has the notion of a Stack frame defines in [`PyFrameObject`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyFrameObject) and evaluates them in using [`PyEval_EvalFrameEx`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyEval_EvalFrameEx)
-
-
-???
-
-This `PyEval_EvalFrameEx` function is the evaluation function for Python, with [PEP 523](https://www.python.org/dev/peps/pep-0523/) they added another way for you to evaluate these frames. This isn't something I've looked into yet.
-
-
----
-
-# What does a frame look like in Memory
-
-https://github.com/python/cpython/blob/ffef50f1f5907e5f0f175b12088d3e509011f126/Include/frameobject.h#L17-L47
-```c
-typedef struct _frame {
-    PyObject_VAR_HEAD
-    struct _frame *f_back;      /* previous frame, or NULL */
-    PyCodeObject *f_code;       /* code segment */
-    PyObject *f_builtins;       /* builtin symbol table (PyDictObject) */
-    PyObject *f_globals;        /* global symbol table (PyDictObject) */
-    PyObject *f_locals;         /* local symbol table (any mapping) */
-    PyObject **f_valuestack;    /* points after the last local */
-    /* Next free slot in f_valuestack.  Frame creation sets to f_valuestack.
-       Frame evaluation usually NULLs it, but a frame that yields sets it
-       to the current stack top. */
-    PyObject **f_stacktop;
-    PyObject *f_trace;          /* Trace function */
-    char f_trace_lines;         /* Emit per-line trace events? */
-    char f_trace_opcodes;       /* Emit per-opcode trace events? */
-
-    /* Borrowed reference to a generator, or NULL */
-    PyObject *f_gen;
-
-    int f_lasti;                /* Last instruction if called */
-    /* Call PyFrame_GetLineNumber() instead of reading this field
-       directly.  As of 2.3 f_lineno is only valid when tracing is
-       active (i.e. when f_trace is set).  At other times we use
-       PyCode_Addr2Line to calculate the line from the current
-       bytecode index. */
-    int f_lineno;               /* Current line number */
-    int f_iblock;               /* index in f_blockstack */
-    char f_executing;           /* whether the frame is still executing */
-    PyTryBlock f_blockstack[CO_MAXBLOCKS]; /* for try and loop blocks */
-    PyObject *f_localsplus[1];  /* locals+stack, dynamically sized */
-} PyFrameObject;
-```
-
----
-
-
-# Local variables to a frame
-
-In the `PyFrameObject` we see that there's an item called `Pyobject *f_locals`
-This stores the local variables to that frame.
-
----
-
-# Garbage collection
-
-Python is a managed language, you don't have to manually manage memory as you would in say C++ or Rust.
-
-When you create a variable Python will set aside the memory needed to store that variable.
-When variables are not needed anymore Python has to reclaim the memory.
-
-How this works is implementation specific CPython has a simple reference count based approach, chosen primarily for maximum compatibility.
-(Jython uses the JVM memory management, PyPy has a different strategy)
-
----
-
-# Python's reference counter
-
-Each time you make reference to a variable the reference count for the variable is incremented, when that count gets to zero then you have nothing referring to that variable anymore* at which point the item's `__del__` method gets called and the memory can be reused.
-
-*There _are_ ways around this if you need them, see [weakref](https://docs.python.org/3/library/weakref.html) for example.
-
-???
-
-This is good reading for how this all works: https://docs.python.org/3/extending/extending.html#reference-counts
-
-If you make C extensions you have to manually increment and decrement references.
-
----
-
-# What about cycles?
-
-Unfortunately a purely reference counting based implementation can't break cycles.
-
-This is why there's a cycle detector in CPython that periodically runs:
-
-https://docs.python.org/3/library/gc.html
-
-???
-
-There's an edge case in older versions of Python where the cycle detector can't actually free the memory, this is when objects define `__del__` in such a way that the interpreter cannot safely pick which to run first since `__del__` can contain arbitraty code. When this happens the objects get placed in [`gc.garbage`](http://docs.python.org/library/gc.html#gc.garbage) to be dealt with by the programmer. Or just forgotten entirely... This is where things like https://pythonhosted.org/Pympler/ are useful to detect leaked memory.
-
-Since PEP 442 https://www.python.org/dev/peps/pep-0442/ which got included in Python 3.4 the number of cases in which this comes up is far smaller now.
-You will likely only run into this in in cases where you define a `__del__` operator via the C-API. (I'd be curious to hear of any other cases)
-
----
-
-# Cycle example
-
-```python
-"""Example of a cyclic reference that can be resolved in both python3 and python2"""
-import gc
-
-class A:
-    def __init__ (self, name):
-        self.name = name
-        self.other = None
-    def set_other(self, other):
-        self.other = other
-    def __repr__(self):
-        return "A({})".format(self.name)
-
-a1 = A("first")
-a2 = A("second")
-a3 = A("third")
-a1.set_other(a2)
-a2.set_other(a3)
-a3.set_other(a1)
-
-a1 = a2 = a3 = None
-n = gc.collect()
-print("Number of unreachable objects {}".format(n)) # 6 items get freed
-```
-
-???
-
-`gc.collect` calls a run of the cycle detector and returns the number of items that were freed from the run. In this case it was 6.
 
 ---
 
@@ -347,8 +185,7 @@ Note how the small integers and values like `None` are in a completely different
 
 So we know where the objects end up in memory but what gets put there?
 
-The source code is here:
-https://github.com/python/cpython/blob/master/Include/object.h
+The source code for objects is defined at [/Include/object.h](https://github.com/python/cpython/blob/master/Include/object.h)
 
 A comment from the source:
 
@@ -388,8 +225,6 @@ This is a placeholder into which we can store arbitrary variables.
 This provides for the reference counted memory management of anything stored within it.
 
 `_PyObject_HEAD_EXTRA` deals with a debug tracing feature and is often #defined away as nothing.
-
-
 
 ---
 
@@ -480,6 +315,185 @@ typedef struct _heaptypeobject {
 ```
 
 ---
+
+# How many variables do we need to assign?
+
+In the previous example we saw that we needed to assign 3 variables.
+
+But what about this:
+
+```python
+
+a = 1
+b = 2
+
+def foo():
+    bar = 1
+    baz = 2
+```
+
+Understanding this requires to know how a stack frame works.
+
+???
+
+The total number of variables that have to be assigned is completely dependent on how many times `foo` is called
+
+
+---
+
+# Stack frames
+
+Functions are themselves variables but they have a few extra things going on too. Specifically they need to be able to set aside some memory for storing the references to variables stored in them.
+
+When we create a function we have to put aside the memory for all the variables inside it as well as the function call machinery.
+
+This is most easily achieved with a stack based structure and therefore is how CPython has implemented it. These are called frame objects.
+
+???
+
+A stack is not the only way to do this, projects such as stackless python have experimented with other approaches.
+
+
+---
+
+# What does a frame look like in Memory
+
+From the CPython source [/Include/frameobject.h](https://github.com/python/cpython/blob/ffef50f1f5907e5f0f175b12088d3e509011f126/Include/frameobject.h#L17-L47):
+```c
+typedef struct _frame {
+    PyObject_VAR_HEAD
+    struct _frame *f_back;      /* previous frame, or NULL */
+    PyCodeObject *f_code;       /* code segment */
+    PyObject *f_builtins;       /* builtin symbol table (PyDictObject) */
+    PyObject *f_globals;        /* global symbol table (PyDictObject) */
+    PyObject *f_locals;         /* local symbol table (any mapping) */
+    PyObject **f_valuestack;    /* points after the last local */
+    PyObject **f_stacktop;
+    PyObject *f_trace;          /* Trace function */
+    char f_trace_lines;         /* Emit per-line trace events? */
+    char f_trace_opcodes;       /* Emit per-opcode trace events? */
+    /* Borrowed reference to a generator, or NULL */
+    PyObject *f_gen;
+    int f_lasti;                /* Last instruction if called */
+    int f_lineno;               /* Current line number */
+    int f_iblock;               /* index in f_blockstack */
+    char f_executing;           /* whether the frame is still executing */
+    PyTryBlock f_blockstack[CO_MAXBLOCKS]; /* for try and loop blocks */
+    PyObject *f_localsplus[1];  /* locals+stack, dynamically sized */
+} PyFrameObject;
+```
+
+---
+
+# Local variables to a frame
+
+Mostly we never have to concern ourselves with the direct memory layout in Python (phew), we have much easier ways to work with these objects.
+
+In the `PyFrameObject` we see that there's an item called `Pyobject *f_locals`
+This stores the local variables to that frame.
+
+---
+
+# Stack frames in Python
+
+CPython has the notion of a Stack frame which it defines in [`PyFrameObject`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyFrameObject) and evaluates them in using [`PyEval_EvalFrameEx`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyEval_EvalFrameEx)
+
+Whenever Python runs it creates an initial frame, which can itself create other frames. Python "executes" by evaluating these frames.
+
+???
+
+This `PyEval_EvalFrameEx` function is the evaluation function for Python, with [PEP 523](https://www.python.org/dev/peps/pep-0523/) they added another way for you to evaluate these frames. This isn't something I've looked into yet.
+
+
+---
+
+# What happens to the memory after we no longer need it?
+
+So far we have covered what gets created in memory but not how it gets deleted.
+
+For code ot be useful and not use up all your RAM it has to remove unneeded variables from memory when it's done with them.
+
+This process is known as [Garbage collection](https://en.wikipedia.org/wiki/Garbage_collection_(computer_science))
+
+---
+
+# How CPython does garbage collection
+
+Python is a managed language, you don't have to manually manage memory as you would in say C++ or Rust.
+
+When you create a variable Python will set aside the memory needed to store that variable.
+When variables are not needed anymore Python has to reclaim the memory.
+
+How this works is implementation specific CPython has a simple reference count based approach, chosen primarily for maximum compatibility.
+(Jython uses the JVM memory management, PyPy has a different strategy)
+
+---
+
+# Python's reference counter
+
+Remember from earlier that every python variable has a reference count associated with it (`Py_ssize_t ob_refcnt;`)
+
+Each time you make reference to a variable the reference count for the variable is incremented, when that count gets to zero then you have nothing referring to that variable anymore* at which point the item's `__del__` method gets called and the memory can be reused.
+
+*There _are_ ways around this if you need them, see [weakref](https://docs.python.org/3/library/weakref.html) for example.
+
+???
+
+This is good reading for how this all works: https://docs.python.org/3/extending/extending.html#reference-counts
+
+If you make C extensions you have to manually increment and decrement references.
+
+---
+
+# What about cycles?
+
+Unfortunately a purely reference counting based implementation can't break cycles.
+
+This is why there's a cycle detector in CPython that periodically runs:
+
+https://docs.python.org/3/library/gc.html
+
+???
+
+There's an edge case in older versions of Python where the cycle detector can't actually free the memory, this is when objects define `__del__` in such a way that the interpreter cannot safely pick which to run first since `__del__` can contain arbitraty code. When this happens the objects get placed in [`gc.garbage`](http://docs.python.org/library/gc.html#gc.garbage) to be dealt with by the programmer. Or just forgotten entirely... This is where things like https://pythonhosted.org/Pympler/ are useful to detect leaked memory.
+
+Since PEP 442 https://www.python.org/dev/peps/pep-0442/ which got included in Python 3.4 the number of cases in which this comes up is far smaller now.
+You will likely only run into this in in cases where you define a `__del__` operator via the C-API. (I'd be curious to hear of any other cases)
+
+---
+
+# Cycle example
+
+```python
+"""Example of a cyclic reference that can be resolved in both python3 and python2"""
+import gc
+
+class A:
+    def __init__ (self, name):
+        self.name = name
+        self.other = None
+    def set_other(self, other):
+        self.other = other
+    def __repr__(self):
+        return "A({})".format(self.name)
+
+a1 = A("first")
+a2 = A("second")
+a3 = A("third")
+a1.set_other(a2)
+a2.set_other(a3)
+a3.set_other(a1)
+
+a1 = a2 = a3 = None
+n = gc.collect()
+print("Number of unreachable objects {}".format(n)) # 6 items get freed
+```
+
+???
+
+`gc.collect` calls a run of the cycle detector and returns the number of items that were freed from the run. In this case it was 6.
+
+
 
 # Questions?
 
