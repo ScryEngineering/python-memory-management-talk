@@ -48,7 +48,7 @@ https://github.com/customprogrammingsolutions/python-memory-management-talk
 
 ???
 
-In this talk we will mostly cover the ??? part.
+In this talk we will mostly cover the Python bit and the "???" part.
 
 Images:
 https://www.python.org/community/logos/
@@ -105,7 +105,7 @@ c = [a, b]
 
 ---
 
-# How many variables did we need to assign?
+# How many variables do we need to assign?
 
 In the previous example we saw that we needed to assign 3 variables.
 
@@ -120,6 +120,8 @@ def foo():
     bar = 1
     baz = 2
 ```
+
+Understanding this requires to know how a stack frame works.
 
 ???
 
@@ -147,6 +149,53 @@ CPython has the notion of a Stack frame defines in [`PyFrameObject`](https://doc
 
 This `PyEval_EvalFrameEx` function is the evaluation function for Python, with [PEP 523](https://www.python.org/dev/peps/pep-0523/) they added another way for you to evaluate these frames. This isn't something I've looked into yet.
 
+
+---
+
+# What does a frame look like in Memory
+
+https://github.com/python/cpython/blob/ffef50f1f5907e5f0f175b12088d3e509011f126/Include/frameobject.h#L17-L47
+```c
+typedef struct _frame {
+    PyObject_VAR_HEAD
+    struct _frame *f_back;      /* previous frame, or NULL */
+    PyCodeObject *f_code;       /* code segment */
+    PyObject *f_builtins;       /* builtin symbol table (PyDictObject) */
+    PyObject *f_globals;        /* global symbol table (PyDictObject) */
+    PyObject *f_locals;         /* local symbol table (any mapping) */
+    PyObject **f_valuestack;    /* points after the last local */
+    /* Next free slot in f_valuestack.  Frame creation sets to f_valuestack.
+       Frame evaluation usually NULLs it, but a frame that yields sets it
+       to the current stack top. */
+    PyObject **f_stacktop;
+    PyObject *f_trace;          /* Trace function */
+    char f_trace_lines;         /* Emit per-line trace events? */
+    char f_trace_opcodes;       /* Emit per-opcode trace events? */
+
+    /* Borrowed reference to a generator, or NULL */
+    PyObject *f_gen;
+
+    int f_lasti;                /* Last instruction if called */
+    /* Call PyFrame_GetLineNumber() instead of reading this field
+       directly.  As of 2.3 f_lineno is only valid when tracing is
+       active (i.e. when f_trace is set).  At other times we use
+       PyCode_Addr2Line to calculate the line from the current
+       bytecode index. */
+    int f_lineno;               /* Current line number */
+    int f_iblock;               /* index in f_blockstack */
+    char f_executing;           /* whether the frame is still executing */
+    PyTryBlock f_blockstack[CO_MAXBLOCKS]; /* for try and loop blocks */
+    PyObject *f_localsplus[1];  /* locals+stack, dynamically sized */
+} PyFrameObject;
+```
+
+---
+
+
+# Local variables to a frame
+
+In the `PyFrameObject` we see that there's an item called `Pyobject *f_locals`
+This stores the local variables to that frame.
 
 ---
 
