@@ -110,22 +110,28 @@ c = [a, b]
 
 Exactly how this works is an Python implementation dependent detail, we will look at how CPython does it.
 
+Just about everything is stored in variables in the same way, different types, functions, etc.
+(This will concept will come up throughout this)
 
 ---
 
-# Python Objects (part 1)
+# Python and objects
 
 Python is an "Object Oriented Language", which in this case means that almost every variable is accessible via a similar interface.
-
 Python has the notion of a [data model](https://docs.python.org/3/reference/datamodel.html), where objects are the abstraction Python uses for data.
 
-If you look around the source code you'll see these `PyObjects` all over the place. All these `PyObjects` are allocated in a chunk of memory that people may informally refer to as "the heap".
+And as many things as possible are stored in these objects as possible across the language.
+
+These are `PyObjects` in the source and if you look around the source code you'll see these `PyObjects` all over the place. All these `PyObjects` are allocated in a chunk of memory that people may informally refer to as "the heap".
+
+???
+Other language don't attempt to have everything behind the same interface, for example c++ handles functions very differently to variables in the sense that you can't easily assign a function to a variable using the same semantics that another simple assignment would take. Another annoying difference is how arrays have different semantics to say integers. In Python you'll notice that almost every variable can be manipulated via a similar interface, this is a powerful part of the Python paradigm.
 
 ---
 
 # CPython Objects - where (part 2)
 
-[Since Python 2.3](https://docs.python.org/2.3/whatsnew/section-pymalloc.html) CPython has used some functions very similar to the C malloc and free functions to allocate the memory in which objects are stored. These functions are modified to be more suitable for allocating the Python objects we commonly see.
+[Since Python 2.3](https://docs.python.org/2.3/whatsnew/section-pymalloc.html) CPython has used some functions very similar to the C `malloc` and `free` functions to allocate the memory in which objects are stored. These functions are modified to be more suitable for allocating the Python objects we commonly see.
 
 What malloc does is *alloc*ates a space in *m*emory for which a variable can be placed and gives you the pointer to where that space starts.
 
@@ -343,7 +349,7 @@ The total number of variables that have to be assigned is completely dependent o
 
 # Stack frames
 
-Functions are themselves variables but they have a few extra things going on too. Specifically they need to be able to set aside some memory for storing the references to variables stored in them.
+Functions are themselves variables but they have a few extra things going on too. Specifically they need to be able to set aside some memory for storing the references to the other variables stored in them.
 
 When we create a function we have to put aside the memory for all the variables inside it as well as the function call machinery.
 
