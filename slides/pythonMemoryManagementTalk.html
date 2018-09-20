@@ -143,6 +143,8 @@ In CPython when you do `id(something)` what you are seeing is the memory address
 10923328
 ```
 
+`foo` is at located at the memory address `10923328`
+
 ???
 Most of the time when you store different items they will end up at different addresses, but not always.
 
@@ -189,7 +191,7 @@ Note how the small integers and values like `None` are in a completely different
 
 # CPython objects - what (part 3)
 
-So we know where the objects end up in memory but what gets put there?
+So we know where the objects end up in memory but what exactly gets put there?
 
 The source code for objects is defined at [/Include/object.h](https://github.com/python/cpython/blob/master/Include/object.h)
 
@@ -236,7 +238,7 @@ This provides for the reference counted memory management of anything stored wit
 
 # Types
 
-Everything in Python must have information about the type, otherwise Python wouldn't know how to handle these entities. This is why it is in the C definition that is the base for *all* Python variables.
+Everything in Python must have information about the type, otherwise Python wouldn't know how to handle these entities. This is why it is in the `PyObject` C structure that is the base for *all* Python variables.
 
 You can find the type of any item in Python using `type`:
 
@@ -290,8 +292,9 @@ Functions are also accessible via this same object interface:
 ```
 
 This means we can pass functions around just as easily as variables.
-
 `__call__` is part of the function interface, something not in the list interface.
+
+More about functions a little later...
 
 ???
 
@@ -396,7 +399,16 @@ typedef struct _frame {
 Mostly we never have to concern ourselves with the direct memory layout in Python (phew), we have much easier ways to work with these objects.
 
 In the `PyFrameObject` we see that there's an item called `Pyobject *f_locals`
-This stores the local variables to that frame.
+This stores the local variables to that frame. Let's see how this works with the following:
+
+```python
+def foo():
+    bar = "abc"
+    baz = 123
+---
+
+TODO:
+dis.show_code(gen_example)
 
 ---
 
