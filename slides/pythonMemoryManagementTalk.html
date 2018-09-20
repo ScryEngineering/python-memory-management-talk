@@ -340,6 +340,25 @@ This provides for the reference counted memory management of anything stored wit
 
 `_PyObject_HEAD_EXTRA` deals with a debug tracing feature and is often #defined away as nothing.
 
+
+
+---
+
+# Types
+
+Everything in Python must have information about the type, otherwise Python wouldn't know how to handle these entities. This is why it is in the C definition that is the base for *all* Python variables.
+
+You can find the type of any item in Python using `type`:
+
+```python
+>>> type(1)
+<class 'int'>
+>>> type("abc")
+<class 'str'>
+>>> type([1,2,3])
+<class 'list'>
+```
+
 ---
 
 # Python objects, what's in them?
