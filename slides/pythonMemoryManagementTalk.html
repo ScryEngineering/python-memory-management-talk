@@ -129,7 +129,7 @@ Other language don't attempt to have everything behind the same interface, for e
 
 ---
 
-# CPython Objects - where (part 2)
+# CPython Objects - where
 
 [Since Python 2.3](https://docs.python.org/2.3/whatsnew/section-pymalloc.html) CPython has used some functions very similar to the C `malloc` and `free` functions to allocate the memory in which objects are stored. These functions are modified to be more suitable for allocating the Python objects we commonly see.
 
@@ -189,7 +189,7 @@ Note how the small integers and values like `None` are in a completely different
 
 ---
 
-# CPython objects - what (part 3)
+# CPython objects - what
 
 So we know where the objects end up in memory but what exactly gets put there?
 
@@ -407,8 +407,24 @@ def foo():
     baz = 123
 ---
 
-TODO:
-dis.show_code(gen_example)
+```python
+>>> import dis
+>>> dis.show_code(foo)
+Name:              foo
+Filename:          <stdin>
+Argument count:    0
+Kw-only arguments: 0
+Number of locals:  2
+Stack size:        1
+Flags:             OPTIMIZED, NEWLOCALS, NOFREE
+Constants:
+   0: None
+   1: 'abc'
+   2: 123
+Variable names:
+   0: bar
+   1: baz
+```
 
 ---
 
