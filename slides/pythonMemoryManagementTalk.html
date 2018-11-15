@@ -146,7 +146,13 @@ This sets up the variables and memory that the interpreter needs to run your cod
 
 # CPython Objects - builtin objects
 
-You will have noticed that there's an area set aside for builtin objects.
+![Builtin objects](BuiltinObjects.png)
+
+---
+
+# CPython Objects - builtin objects
+
+You will have noticed that there's a fixed sized area set aside for builtin objects.
 
 Values such as `True`, `False` and `None` are stored here. They are all stored as singletons.
 
@@ -158,7 +164,13 @@ The objects that get special treatment are all found in the source at [/Objects]
 
 ---
 
-# CPython Objects - where variables are stored
+# CPython Objects - where non-builtin variables are stored
+
+![Object storage](PyObjectStorage.png)
+
+---
+
+# CPython Objects - where non-builtin variables are stored
 
 [Since Python 2.3](https://docs.python.org/2.3/whatsnew/section-pymalloc.html) CPython has used some functions very similar to the C `malloc` and `free` functions to allocate the memory in which objects are stored. These functions are modified to be more suitable for allocating the Python objects we commonly see.
 
