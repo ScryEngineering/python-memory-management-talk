@@ -133,8 +133,9 @@ Other language don't attempt to have everything behind the same interface, for e
 # CPython Objects - where everything goes
 
 When you start the CPython interpreter you are invoking [/Modules/main.c](https://github.com/python/cpython/blob/master/Modules/main.c).
+This sets up the variables and memory that the interpreter needs to run your code. It generates this memory layout:
 
-This sets up the variables and memory that the interpreter needs to run your code.
+![CPython Memory layout diagram](CPythonMemoryLayout.png)
 
 
 ???
@@ -147,11 +148,11 @@ This sets up the variables and memory that the interpreter needs to run your cod
 
 You will have noticed that there's an area set aside for builtin objects.
 
-Values such as `True` `False` and `None` are stored here. They are all stored as singletons.
+Values such as `True`, `False` and `None` are stored here. They are all stored as singletons.
 
 This means that any identity comparison will always be true for these particular objects.
 
-Anything that has the value of `None` will always point to the one and only `None` object that lives in that area of memory.
+For example any variable that has the value of `None` will always point to the same address. They will have the same id as there is only the one `None` object which lives in that special area of memory.
 
 The objects that get special treatment are all found in the source at [/Objects](https://github.com/python/cpython/tree/master/Objects)
 
