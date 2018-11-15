@@ -57,12 +57,12 @@ https://en.wikipedia.org/wiki/DDR_SDRAM#/media/File:Generic_DDR_Memory_(Xytram).
 
 ---
 
-# First some background
+# First some assumptions
 
-We are going to assume we are on a Von Neumann Architecture
+We are going to assume that RAM is addressable in a sequential manner.
 
-What this means is that RAM is essentially addressable.
-
+We are also going to assume that a given address is a unique location that we can store information at.
+Or alternatively that any 2 distinct addresses are distinct locations in memory.
 
 ---
 
@@ -114,6 +114,13 @@ Exactly how this works is an Python implementation dependent detail, we will loo
 Just about everything is stored in variables in the same way, different types, functions, etc.
 (This will concept will come up throughout this)
 
+
+---
+
+# Very high level
+
+![Python variables high level](PythonVariables.png)
+
 ---
 
 # Python and objects
@@ -130,7 +137,49 @@ Other language don't attempt to have everything behind the same interface, for e
 
 ---
 
-# CPython Objects - where
+# CPython Objects - where everything goes
+
+When you start the CPython interpreter you are invoking [/Modules/main.c](https://github.com/python/cpython/blob/master/Modules/main.c).
+This sets up the variables and memory that the interpreter needs to run your code. It generates this memory layout:
+
+![CPython Memory layout diagram](CPythonMemoryLayout.png)
+
+
+???
+
+[/Modules/main.c](https://github.com/python/cpython/blob/master/Modules/main.c) does a lot from handling the command line options (such as `'-c'` and `'-m'` etc) to initializing the various bits of state required to actually run the interpreter.
+
+---
+
+# CPython Objects - builtin objects
+
+![Builtin objects](BuiltinObjects.png)
+
+---
+
+# CPython Objects - builtin objects
+
+You will have noticed that there's a fixed sized area set aside for builtin objects.
+
+Values such as `True`, `False` and `None` are stored here. They are all stored as singletons.
+
+This means that any identity comparison will always be true for these particular objects.
+
+For example any variable that has the value of `None` will always point to the same address. They will have the same id as there is only the one `None` object which lives in that special area of memory.
+
+The objects that get special treatment are all found in the source at [/Objects](https://github.com/python/cpython/tree/master/Objects)
+
+---
+
+# CPython Objects - non-builtin objects
+
+non-builtin objects are the user defined variables that you create
+
+![Object storage](PyObjectStorage.png)
+
+---
+
+# CPython Objects - where non-builtins are stored
 
 [Since Python 2.3](https://docs.python.org/2.3/whatsnew/section-pymalloc.html) CPython has used some functions very similar to the C `malloc` and `free` functions to allocate the memory in which objects are stored. These functions are modified to be more suitable for allocating the Python objects we commonly see.
 
@@ -190,7 +239,7 @@ Note how the small integers and values like `None` are in a completely different
 
 ---
 
-# CPython objects - what
+# CPython objects - what get stored
 
 So we know where the objects end up in memory but what exactly gets put there?
 
@@ -207,6 +256,14 @@ A comment from the source:
     pointer to the object is copied or deleted; when the reference count
     reaches zero there are no references to the object left and it can be
     removed from the heap.
+
+---
+
+# Where variables are stored
+
+![Object storage](PyObjectStorage.png)
+
+Variables are stored in the stack frames but what the refer to are stored in the Object storage space we talked about before.
 
 ---
 
@@ -233,15 +290,23 @@ This is a placeholder into which we can store arbitrary variables.
 
 This provides for the reference counted memory management of anything stored within it.
 
-`_PyObject_HEAD_EXTRA` deals with a debug tracing feature and is often #defined away as nothing.
+`_PyObject_HEAD_EXTRA` os a preprocessor macro that deals with a debug tracing feature and is often #defined away as nothing.
+
+---
+
+# The type of an object
+
+The type of an object defines what you can find in them, in the source code this is found here in [Doc/includes/typestruct.h](
+https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Doc/includes/typestruct.h).
+
+This is necessary for 2 reasons, it is required so that Python knows how much space to set aside for the variable in the RAM.
+It also allows Python to know what interface is supported by that variable.
 
 ---
 
 # Types
 
-Everything in Python must have information about the type, otherwise Python wouldn't know how to handle these entities. This is why it is in the `PyObject` C structure that is the base for *all* Python variables.
-
-You can find the type of any item in Python using `type`:
+Everything in Python must have information about the type, otherwise Python wouldn't know how to handle these entities. This is why it is in the `PyObject` C structure that is the base for *all* Python variables. You can find the type of any item in Python using `type`:
 
 ```python
 >>> type(1)
@@ -250,6 +315,30 @@ You can find the type of any item in Python using `type`:
 <class 'str'>
 >>> type([1,2,3])
 <class 'list'>
+```
+
+Note that these builtin types are stored in that builtin objects region from before.
+```python
+>>> id(int)
+10742016
+>>> id(str)
+10724416
+>>> id(list)
+10735616
+```
+---
+
+# Types part 2
+
+Now instead of storing the types as part of each object itself they store a pointer to a builtin type.
+This builtin type is a python object too, specifically a `PyTypeObject`.
+This saves memory amongst other things.
+
+Calling `type` will get you a reference to the class that defines the type of the object.
+```python
+>>> a = 123
+>>> type(a)
+<class 'int'>
 ```
 
 ---
@@ -464,26 +553,6 @@ The `dis` module provides a handy human readable output of what's going on.
 ---
 
 # Stack frames in Python
-
-CPython has the notion of a Stack frame which it defines in [`PyFrameObject`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyFrameObject) and evaluates them in using [`PyEval_EvalFrameEx`](https://docs.python.org/3/c-api/veryhigh.html?highlight=pyframeobject#c.PyEval_EvalFrameEx)
-
-Whenever Python runs it creates an initial frame, which can itself create other frames. Python "executes" code by evaluating these frames.
-
-???
-
-This `PyEval_EvalFrameEx` function is the evaluation function for Python, with [PEP 523](https://www.python.org/dev/peps/pep-0523/) they added another way for you to evaluate these frames. This isn't something I've looked into yet.
-
-
----
-
-# What happens to the memory after we no longer need it?
-
-So far we have covered what gets created in memory but not how it gets deleted.
-
-For code ot be useful and not use up all your RAM it has to remove unneeded variables from memory when it's done with them.
-
-This process is known as "Garbage collection"
-
 ???
 
 Garbage collection: https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)
