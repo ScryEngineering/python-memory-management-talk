@@ -295,19 +295,6 @@ It also allows Python to know what interface is supported by that variable.
 
 ---
 
-# Types part 2
-
-Now instead of storing the types everywhere as you can see in the C source code there's a pointer. Each variable has this reference to some memory which defines what type it is.
-
-What resides at the address is found with the `type` builtin:
-```python
->>> a = 123
->>> type(a)
-<class 'int'>
-```
-
----
-
 # Types
 
 Everything in Python must have information about the type, otherwise Python wouldn't know how to handle these entities. This is why it is in the `PyObject` C structure that is the base for *all* Python variables.
@@ -321,6 +308,18 @@ You can find the type of any item in Python using `type`:
 <class 'str'>
 >>> type([1,2,3])
 <class 'list'>
+```
+---
+
+# Types part 2
+
+Now instead of storing the types everywhere as you can see in the C source code there's a pointer. Each variable has this reference to some memory which defines what type it is.
+
+What resides at the address is found with the `type` builtin:
+```python
+>>> a = 123
+>>> type(a)
+<class 'int'>
 ```
 
 ---
