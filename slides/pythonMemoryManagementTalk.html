@@ -117,7 +117,26 @@ Just about everything is stored in variables in the same way, different types, f
 
 ---
 
-# Very high level
+# Very high level - comparions and identity
+
+`==` checks if two values are equal
+`is` checks if two variables are referring to the same thing
+
+```python
+>>> a = 1000
+>>> b = 2000
+>>> c = d = 1000
+>>> a == b
+False
+>>> a == c
+True
+>>> a is c
+False
+>>> c is d
+True
+```
+
+# Very high level - part 2
 
 ![Python variables high level](PythonVariables.png)
 
