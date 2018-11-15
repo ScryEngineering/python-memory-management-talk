@@ -164,13 +164,15 @@ The objects that get special treatment are all found in the source at [/Objects]
 
 ---
 
-# CPython Objects - where non-builtin variables are stored
+# CPython Objects - non-builtin objects
+
+non-builtin objects are the user defined variables that you create
 
 ![Object storage](PyObjectStorage.png)
 
 ---
 
-# CPython Objects - where non-builtin variables are stored
+# CPython Objects - where non-builtins are stored
 
 [Since Python 2.3](https://docs.python.org/2.3/whatsnew/section-pymalloc.html) CPython has used some functions very similar to the C `malloc` and `free` functions to allocate the memory in which objects are stored. These functions are modified to be more suitable for allocating the Python objects we commonly see.
 
@@ -230,7 +232,7 @@ Note how the small integers and values like `None` are in a completely different
 
 ---
 
-# CPython objects - what
+# CPython objects - what get stored
 
 So we know where the objects end up in memory but what exactly gets put there?
 
@@ -297,9 +299,7 @@ It also allows Python to know what interface is supported by that variable.
 
 # Types
 
-Everything in Python must have information about the type, otherwise Python wouldn't know how to handle these entities. This is why it is in the `PyObject` C structure that is the base for *all* Python variables.
-
-You can find the type of any item in Python using `type`:
+Everything in Python must have information about the type, otherwise Python wouldn't know how to handle these entities. This is why it is in the `PyObject` C structure that is the base for *all* Python variables. You can find the type of any item in Python using `type`:
 
 ```python
 >>> type(1)
@@ -309,13 +309,25 @@ You can find the type of any item in Python using `type`:
 >>> type([1,2,3])
 <class 'list'>
 ```
+
+Note that these builtin types are stored in that builtin objects region from before.
+```python
+>>> id(int)
+10742016
+>>> id(str)
+10724416
+>>> id(list)
+10735616
+```
 ---
 
 # Types part 2
 
-Now instead of storing the types everywhere as you can see in the C source code there's a pointer. Each variable has this reference to some memory which defines what type it is.
+Now instead of storing the types as part of each object itself they store a pointer to a builtin type.
+This builtin type is a python object too, specifically a `PyTypeObject`.
+This saves memory amongst other things.
 
-What resides at the address is found with the `type` builtin:
+Calling `type` will get you a reference to the class that defines the type of the object.
 ```python
 >>> a = 123
 >>> type(a)
