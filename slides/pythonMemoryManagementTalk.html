@@ -77,7 +77,7 @@ If more than one symbolic name is located at the same storage location this is r
 
 ---
 
-# Variables
+# Variables example
 
 ```python
 >>> foo = [1,2,3]
@@ -91,9 +91,9 @@ If more than one symbolic name is located at the same storage location this is r
 
 ---
 
-# Pythontutor
+# PythonTutor
 
-There's a great site for getting intuition into how variables work in Python: http://pythontutor.com/
+There's a great site for getting intuition into how variables (and execution) works in Python: http://pythontutor.com/
 
 Let's have a look at this example:
 
@@ -394,7 +394,8 @@ Functions are also accessible via this same object interface:
 This means we can pass functions around just as easily as variables.
 `__call__` is part of the function interface, something not in the list interface.
 
-More about functions a little later...
+
+As we mentioned earlier python objects have a similar interface, but more about functions a little later...
 
 ???
 
@@ -439,7 +440,7 @@ def foo():
 foo()
 ```
 
-Understanding this requires to know how a stack frame works.
+Understanding how this is implemented requires we know how a stack frame works.
 
 ???
 
