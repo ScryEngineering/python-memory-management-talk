@@ -57,12 +57,12 @@ https://en.wikipedia.org/wiki/DDR_SDRAM#/media/File:Generic_DDR_Memory_(Xytram).
 
 ---
 
-# First some background
+# First some assumptions
 
-We are going to assume we are on a Von Neumann Architecture
+We are going to assume that RAM is addressable in a sequential manner.
 
-What this means is that RAM is essentially addressable.
-
+We are also going to assume that a given address is a unique location that we can store information at.
+Or alternatively that any 2 distinct addresses are distinct locations in memory.
 
 ---
 
@@ -130,7 +130,34 @@ Other language don't attempt to have everything behind the same interface, for e
 
 ---
 
-# CPython Objects - where
+# CPython Objects - where everything goes
+
+When you start the CPython interpreter you are invoking [/Modules/main.c](https://github.com/python/cpython/blob/master/Modules/main.c).
+
+This sets up the variables and memory that the interpreter needs to run your code.
+
+
+???
+
+[/Modules/main.c](https://github.com/python/cpython/blob/master/Modules/main.c) does a lot from handling the command line options (such as `'-c'` and `'-m'` etc) to initializing the various bits of state required to actually run the interpreter.
+
+---
+
+# CPython Objects - builtin objects
+
+You will have noticed that there's an area set aside for builtin objects.
+
+Values such as `True` `False` and `None` are stored here. They are all stored as singletons.
+
+This means that any identity comparison will always be true for these particular objects.
+
+Anything that has the value of `None` will always point to the one and only `None` object that lives in that area of memory.
+
+The objects that get special treatment are all found in the source at [/Objects](https://github.com/python/cpython/tree/master/Objects)
+
+---
+
+# CPython Objects - where variables are stored
 
 [Since Python 2.3](https://docs.python.org/2.3/whatsnew/section-pymalloc.html) CPython has used some functions very similar to the C `malloc` and `free` functions to allocate the memory in which objects are stored. These functions are modified to be more suitable for allocating the Python objects we commonly see.
 
@@ -249,7 +276,7 @@ It also allows Python to know what interface is supported by that variable.
 
 # Types part 2
 
-Now instead of storing the types everyhere as you can see in the C source code there's a pointer. Each variable has this reference to some memory which defines what type it is.
+Now instead of storing the types everywhere as you can see in the C source code there's a pointer. Each variable has this reference to some memory which defines what type it is.
 
 What resides at the address is found with the `type` builtin:
 ```python
