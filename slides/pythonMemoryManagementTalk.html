@@ -390,7 +390,7 @@ More about functions a little later...
 
 ---
 
-# How variables end up layed out in heap memory
+# How type variables end up layed out in heap memory
 
 This is in the source at [Include/object.h](https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Include/object.h#L460-L477)
 ```c
@@ -409,7 +409,7 @@ typedef struct _heaptypeobject {
     /* here are optional user slots, followed by the members. */
 } PyHeapTypeObject;
 ```
-Note the memory is layed out in exactly that order.
+Note how a type is represneted in memory is layed out in exactly that order.
 
 ---
 
