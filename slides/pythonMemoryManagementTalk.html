@@ -77,7 +77,7 @@ If more than one symbolic name is located at the same storage location this is r
 
 ---
 
-# Variables
+# Variables example
 
 ```python
 >>> foo = [1,2,3]
@@ -91,9 +91,9 @@ If more than one symbolic name is located at the same storage location this is r
 
 ---
 
-# Pythontutor
+# PythonTutor
 
-There's a great site for getting intuition into how variables work in Python: http://pythontutor.com/
+There's a great site for getting intuition into how variables (and execution) works in Python: http://pythontutor.com/
 
 Let's have a look at this example:
 
@@ -117,7 +117,27 @@ Just about everything is stored in variables in the same way, different types, f
 
 ---
 
-# Very high level
+# Very high level - identity vs equality
+
+* `==` checks if two values are equal
+* `is` checks if two variables are referring to the same thing
+
+```python
+>>> a = 1000
+>>> b = 2000
+>>> c = d = 1000
+>>> a == b
+False
+>>> a == c
+True
+>>> a is c
+False
+>>> c is d
+True
+```
+---
+
+# Very high level - part 2
 
 ![Python variables high level](PythonVariables.png)
 
@@ -350,12 +370,17 @@ Because everything has this similar interface to access we have some nice tools 
 ```python
 >>> a = [1,2,3]
 >>> dir(a)
-['__add__', '__class__', '__contains__', '__delattr__', '__delitem__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getitem__', '__gt__', '__hash__', '__iadd__', '__imul__', '__init__', '__iter__', '__le__', '__len__', '__lt__', '__mul__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rmul__', '__setattr__', '__setitem__', '__sizeof__', '__str__', '__subclasshook__', 'append', 'clear', 'copy', 'count', 'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
+['__add__', '__class__', '__contains__', '__delattr__', '__delitem__',
+'__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__',
+'__getitem__', '__gt__', '__hash__', '__iadd__', '__imul__', '__init__',
+'__iter__', '__le__', '__len__', '__lt__', '__mul__', '__ne__', '__new__',
+'__reduce__', '__reduce_ex__', '__repr__', '__reversed__', '__rmul__',
+'__setattr__', '__setitem__', '__sizeof__', '__str__',
+'__subclasshook__', 'append', 'clear', 'copy', 'count',
+'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
 ```
 
-This tells us which methods we can call on `a`. All the double underscore or "dunder" methods as they are known have special meaning in terms of the interface they provide.
-
-`__len__` lets us find the length of the item via the `len` function.
+This tells us which methods we can call on `a`. All the double underscore or "dunder" methods as they are known have special meaning in terms of the interface they provide. For example `__len__` lets us find the length of the item via the `len` function.
 ```python
 >>> len(a)
 3
@@ -378,13 +403,19 @@ Functions are also accessible via this same object interface:
 ...     print("bar")
 ... 
 >>> dir(foo)
-['__annotations__', '__call__', '__class__', '__closure__', '__code__', '__defaults__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__get__', '__getattribute__', '__globals__', '__gt__', '__hash__', '__init__', '__kwdefaults__', '__le__', '__lt__', '__module__', '__name__', '__ne__', '__new__', '__qualname__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__']
+['__annotations__', '__call__', '__class__', '__closure__', '__code__',
+'__defaults__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__',
+'__format__', '__ge__', '__get__', '__getattribute__', '__globals__',
+'__gt__', '__hash__', '__init__', '__kwdefaults__', '__le__', '__lt__',
+'__module__', '__name__', '__ne__', '__new__', '__qualname__', '__reduce__',
+'__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__']
 ```
 
 This means we can pass functions around just as easily as variables.
 `__call__` is part of the function interface, something not in the list interface.
 
-More about functions a little later...
+
+As we mentioned earlier python objects have a similar interface, but more about functions a little later...
 
 ???
 
@@ -429,11 +460,23 @@ def foo():
 foo()
 ```
 
-Understanding this requires to know how a stack frame works.
+Understanding how this is implemented requires we know how a stack frame works.
 
 ???
 
 The total number of variables that have to be assigned is completely dependent on how many times `foo` is called
+
+
+---
+
+# Stack frames in Python
+
+
+![Stack frames](StackFrames.png)
+
+???
+
+Garbage collection: https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)
 
 
 ---
@@ -539,13 +582,6 @@ Variable names:
 ```
 
 The `dis` module provides a handy human readable output of what's going on.
-
----
-
-# Stack frames in Python
-???
-
-Garbage collection: https://en.wikipedia.org/wiki/Garbage_collection_(computer_science)
 
 ---
 
