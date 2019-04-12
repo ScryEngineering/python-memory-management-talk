@@ -363,6 +363,29 @@ Calling `type` will get you a reference to the class that defines the type of th
 
 ---
 
+# How type variables are laid out in heap memory
+
+This is in the source at [Include/object.h](https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Include/object.h#L460-L477)
+```c
+/* The *real* layout of a type object when allocated on the heap */
+typedef struct _heaptypeobject {
+    /* Note: there's a dependency on the order of these members
+       in slotptr() in typeobject.c . */
+    PyTypeObject ht_type;
+    PyAsyncMethods as_async;
+    PyNumberMethods as_number;
+    PyMappingMethods as_mapping;
+    PySequenceMethods as_sequence;
+    PyBufferProcs as_buffer;
+    PyObject *ht_name, *ht_slots, *ht_qualname;
+    struct _dictkeysobject *ht_cached_keys;
+    /* here are optional user slots, followed by the members. */
+} PyHeapTypeObject;
+```
+Note how a type is represented in memory is layed out in exactly that order.
+
+---
+
 # Python objects, what's in them?
 
 Because everything has this similar interface to access we have some nice tools like `dir` to see what's inside an object:
@@ -418,29 +441,6 @@ This means we can pass functions around just as easily as variables.
 As we mentioned earlier python objects have a similar interface, but more about functions a little later...
 
 ???
-
----
-
-# How type variables end up layed out in heap memory
-
-This is in the source at [Include/object.h](https://github.com/python/cpython/blob/b2984ab9a7c458f8b7ed8978c0c95b109116895d/Include/object.h#L460-L477)
-```c
-/* The *real* layout of a type object when allocated on the heap */
-typedef struct _heaptypeobject {
-    /* Note: there's a dependency on the order of these members
-       in slotptr() in typeobject.c . */
-    PyTypeObject ht_type;
-    PyAsyncMethods as_async;
-    PyNumberMethods as_number;
-    PyMappingMethods as_mapping;
-    PySequenceMethods as_sequence;
-    PyBufferProcs as_buffer;
-    PyObject *ht_name, *ht_slots, *ht_qualname;
-    struct _dictkeysobject *ht_cached_keys;
-    /* here are optional user slots, followed by the members. */
-} PyHeapTypeObject;
-```
-Note how a type is represneted in memory is layed out in exactly that order.
 
 ---
 
